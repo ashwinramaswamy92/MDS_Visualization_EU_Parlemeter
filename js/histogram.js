@@ -16,7 +16,7 @@ class Histogram {
             }
         });
 
-        d3.select('#clear-histograms').on('click', () => this.clear());
+        d3.select('#clear-histograms').on('click', () => mdsv.clearSelection());
     }
 
     updateHistograms(dataPoints) {

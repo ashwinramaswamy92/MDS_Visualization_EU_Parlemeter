@@ -2,13 +2,16 @@ class MDSVisualization {
     constructor() {
         this.data = null;
         this.countryNames = {};
+        this.countryRegions = {};
         this.filteredData = null;
         this.selectedPoints = [];
         this.currentYearRange = [2007, 2025];
         this.selectedCountries = ['all'];
-        this.maxHistograms = 10; // Easy to change parameter
+        this.maxHistograms = 10;
         this.autoZoom = false;
         this.showFilteredPoints = true;
+        this.clusterAnalysis = new ClusterAnalysis();
+        this.showClusters = false;
         
         this.initializeApp();
     }
@@ -25,6 +28,7 @@ class MDSVisualization {
             const namesData = await d3.csv('data/country_names.csv');
             namesData.forEach(d => {
                 this.countryNames[d.code] = d.country;
+                this.countryRegions[d.code] = d.region;
             });
         } catch (error) {
             console.error('Error loading country names:', error);
@@ -32,13 +36,14 @@ class MDSVisualization {
             const countries = ['AT', 'BE', 'BG', 'CY', 'CZ', 'DE', 'DK', 'EE', 'EL', 'ES', 'FI', 'FR', 'HR', 'HU', 'IE', 'IT', 'LT', 'LU', 'LV', 'MK', 'MT', 'NL', 'PL', 'PT', 'RO', 'SE', 'SI', 'SK', 'TR', 'UK'];
             countries.forEach(code => {
                 this.countryNames[code] = code;
+                this.countryRegions[code] = 'Unknown';
             });
         }
     }
 
     async loadData() {
         try {
-            this.data = await d3.csv('data/mds_survey_distributions_results_ignoring_DK_Refus.csv');
+            this.data = await d3.csv('data/mds_survey_distributions_results.csv');
             
             // Convert numeric columns
             this.data.forEach(d => {
@@ -54,8 +59,9 @@ class MDSVisualization {
                 d.refused = +d.refused;
                 d.dont_know = +d.dont_know;
                 
-                // Add country name
+                // Add country name and region
                 d.country_name = this.countryNames[d.country] || d.country;
+                d.region = this.countryRegions[d.country] || 'Unknown';
             });
 
             this.filteredData = this.data;
@@ -69,14 +75,29 @@ class MDSVisualization {
     populateCountrySelect() {
         const countrySelect = d3.select('#country-select');
         const countries = [...new Set(this.data.map(d => d.country))].sort();
+        const regions = [...new Set(this.data.map(d => d.region))].sort();
         
         countrySelect.selectAll('option:not([value="all"])').remove();
         
+        // Add region options (fully capitalized)
+        regions.forEach(region => {
+            if (region && region !== 'Unknown') {
+                countrySelect.append('option')
+                    .attr('value', `region:${region}`)
+                    .attr('class', 'region-option')
+                    .text(region.toUpperCase());
+            }
+        });
+        
+        // Add country options with flags
         countries.forEach(country => {
             const countryName = this.countryNames[country] || country;
+            const region = this.countryRegions[country] || 'Unknown';
+            
             countrySelect.append('option')
                 .attr('value', country)
-                .text(countryName);
+                .attr('class', 'country-option')
+                .html(`<img src="flags/${country.toLowerCase()}.png" class="country-flag-option" onerror="this.style.display='none'"> ${countryName} (${country})`);
         });
     }
 
@@ -89,7 +110,7 @@ class MDSVisualization {
             .step(0.5)
             .width(200)
             .ticks(5)
-            .tickFormat(d3.format('d')) // Remove commas from years
+            .tickFormat(d3.format('d'))
             .default([d3.min(years), d3.max(years)])
             .on('onchange', values => {
                 this.currentYearRange = values;
@@ -111,13 +132,24 @@ class MDSVisualization {
                 document.getElementById('country-select').selectedOptions
             ).map(option => option.value);
             
-            // If "all" is selected with other countries, keep only "all"
+            // Handle region selections
+            const regions = selectedOptions.filter(opt => opt.startsWith('region:'));
+            const countries = selectedOptions.filter(opt => !opt.startsWith('region:'));
+            
             if (selectedOptions.includes('all') && selectedOptions.length > 1) {
-                document.getElementById('country-select').selectedIndex = 0; // Select only "all"
+                document.getElementById('country-select').selectedIndex = 0;
                 this.selectedCountries = ['all'];
+            } else if (regions.length > 0) {
+                // Get all countries in selected regions
+                const regionCountries = this.data
+                    .filter(d => regions.includes(`region:${d.region}`))
+                    .map(d => d.country);
+                
+                this.selectedCountries = [...new Set([...countries, ...regionCountries])];
             } else {
-                this.selectedCountries = selectedOptions;
+                this.selectedCountries = countries;
             }
+            
             this.filterData();
         });
 
@@ -138,6 +170,22 @@ class MDSVisualization {
             this.filterData();
         });
 
+        // Clustering controls
+        d3.select('#epsilon').on('input', (event) => {
+            d3.select('#epsilon-value').text(parseFloat(event.target.value).toFixed(2));
+        });
+
+        d3.select('#min-samples').on('input', (event) => {
+            d3.select('#min-samples-value').text(event.target.value);
+        });
+
+        d3.select('#k-clusters').on('input', (event) => {
+            d3.select('#k-clusters-value').text(event.target.value);
+        });
+
+        d3.select('#apply-clustering').on('click', () => this.applyClustering());
+        d3.select('#clear-clustering').on('click', () => this.clearClustering());
+
         // Reset buttons
         d3.select('#reset-zoom').on('click', () => this.mdsChart.resetZoom());
         d3.select('#clear-selection').on('click', () => this.clearSelection());
@@ -147,7 +195,7 @@ class MDSVisualization {
         this.filteredData = this.data.filter(d => {
             const yearInRange = d.year >= this.currentYearRange[0] && d.year <= this.currentYearRange[1];
             const countryInSelection = this.selectedCountries.includes('all') || 
-                                   this.selectedCountries.includes(d.country);
+                               this.selectedCountries.includes(d.country);
             return yearInRange && countryInSelection;
         });
 
@@ -156,7 +204,7 @@ class MDSVisualization {
             this.data.filter(d => {
                 const yearInRange = d.year >= this.currentYearRange[0] && d.year <= this.currentYearRange[1];
                 const countryInSelection = this.selectedCountries.includes('all') || 
-                                       this.selectedCountries.includes(d.country);
+                                   this.selectedCountries.includes(d.country);
                 return !(yearInRange && countryInSelection);
             }) : [];
 
@@ -199,6 +247,65 @@ class MDSVisualization {
         this.mdsChart.updateSelection(this.selectedPoints);
     }
 
+    applyClustering() {
+        if (this.filteredData.length === 0) return;
+        
+        const algorithm = document.getElementById('cluster-algo').value;
+        let params = {};
+        
+        switch (algorithm) {
+            case 'dbscan':
+                params = {
+                    epsilon: parseFloat(document.getElementById('epsilon').value),
+                    minSamples: parseInt(document.getElementById('min-samples').value)
+                };
+                break;
+            case 'kmeans':
+                params = {
+                    k: parseInt(document.getElementById('k-clusters').value)
+                };
+                break;
+            case 'hierarchical':
+                params = {
+                    maxClusters: parseInt(document.getElementById('k-clusters').value)
+                };
+                break;
+        }
+        
+        const result = this.clusterAnalysis.applyClustering(this.filteredData, algorithm, params);
+        this.mdsChart.showClusters(result);
+        this.showClusters = true;
+        
+        // Update cluster stats
+        const stats = this.clusterAnalysis.getClusterStats(this.filteredData, result);
+        this.updateClusterStats(stats);
+    }
+
+    updateClusterStats(stats) {
+        const statsDiv = d3.select('#cluster-stats');
+        let html = ``;
+        html +=`<p><strong>Algorithm:</strong> ${stats.algorithm.toUpperCase()}</p>`
+        html += `<p><strong>Clusters:</strong> ${stats.nClusters}</p>`;
+        // html += `<p><strong>Total Points:</strong> ${stats.totalPoints}</p>`;
+        
+        if (stats.noisePoints > 0) {
+            html += `<p><strong>Noise Points:</strong> ${stats.noisePoints}</p>`;
+        }
+        
+        html += `<p><strong>Cluster Sizes:</strong></p>`;
+        Object.entries(stats.clusterSizes).forEach(([cluster, size]) => {
+            html += `<p class = 'cluster-${cluster}'>Cluster ${cluster}: ${size} points</p>`;
+        });
+        
+        statsDiv.html(html);
+    }
+
+    clearClustering() {
+        this.mdsChart.clearClusters();
+        this.showClusters = false;
+        d3.select('#cluster-stats').html('');
+    }
+
     clearSelection() {
         this.selectedPoints = [];
         this.mdsChart.clearSelection();
@@ -208,5 +315,5 @@ class MDSVisualization {
 
 // Initialize the application when the page loads
 document.addEventListener('DOMContentLoaded', () => {
-    new MDSVisualization();
+    mdsv = new MDSVisualization();
 });

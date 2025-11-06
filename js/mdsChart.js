@@ -88,7 +88,7 @@ class MDSChart {
 
     updateScales() {
         const allData = [...this.data, ...this.filteredOutData];
-        
+
         if (allData.length === 0) return;
 
         if (!this.originalXDomain || !this.originalYDomain) {
@@ -188,7 +188,7 @@ class MDSChart {
 
     showTooltip(event, d) {
         const tooltipContent = this.createTooltipContent(d);
-        
+
         this.tooltip.html(tooltipContent)
             .style('opacity', 1)
             .style('left', (event.pageX + 15) + 'px')
@@ -204,7 +204,7 @@ class MDSChart {
         const margin = { top: 25, right: 10, bottom: 40, left: 10 };
         const width = 220;
         const height = 120;
-        
+
         // Prepare data for positions 1-10
         const positionData = [];
         for (let i = 1; i <= 10; i++) {
@@ -314,8 +314,8 @@ Refused: ${d.refused} | Don't Know: ${d.dont_know}`;
         this.g.selectAll('.country-flag')
             .attr('width', size)
             .attr('height', size * 0.67)
-            .attr('x', -size/2)
-            .attr('y', -size/2 * 0.67);
+            .attr('x', -size / 2)
+            .attr('y', -size / 2 * 0.67);
     }
 
     setAutoZoom(autoZoom) {
@@ -339,4 +339,32 @@ Refused: ${d.refused} | Don't Know: ${d.dont_know}`;
     onPointClick(callback) {
         this.onPointClickCallback = callback;
     }
+    // Add these methods to the MDSChart class
+
+    showClusters(clusteringResult) {
+        // Clear existing cluster visuals
+        this.clearClusters();
+
+        // Add cluster circles
+        this.g.selectAll('.cluster-point')
+            .data(this.data)
+            .enter()
+            .append('circle')
+            .attr('class', d => {
+                const clusterId = clusteringResult.labels[this.data.indexOf(d)];
+                return `cluster-point cluster-${clusterId}`;
+            })
+            .attr('cx', d => this.xScale(d.D1))
+            .attr('cy', d => this.yScale(d.D2))
+            .attr('r', 8)
+            .attr('opacity', 0.7);
+
+        // Move cluster points to front
+        this.g.selectAll('.cluster-point').raise();
+    }
+
+    clearClusters() {
+        this.g.selectAll('.cluster-point').remove();
+    }
 }
+

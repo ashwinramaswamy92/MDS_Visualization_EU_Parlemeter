@@ -11,7 +11,7 @@ body {
 }
 
 .container {
-    max-width: 1600px;
+    max-width: 1800px;
     margin: 0 auto;
     padding: 20px;
 }
@@ -34,13 +34,8 @@ header p {
 
 .main-content {
     display: flex;
-    flex-direction: column;
     gap: 20px;
-}
-
-.controls-and-visualization {
-    display: flex;
-    gap: 20px;
+    margin-bottom: 30px;
 }
 
 .controls-panel {
@@ -48,8 +43,25 @@ header p {
     background: white;
     padding: 20px;
     border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     flex-shrink: 0;
+}
+
+.left-panel {
+    order: 1;
+}
+
+.right-panel {
+    order: 3;
+}
+
+.visualization-area {
+    flex: 1;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    padding: 20px;
+    order: 2;
 }
 
 .control-group {
@@ -72,7 +84,29 @@ header p {
 
 #country-select {
     width: 100%;
-    height: 120px;
+    height: 200px;
+    font-size: 14px;
+}
+
+.region-option {
+    font-weight: bold;
+    background-color: #f8f9fa;
+    border-bottom: 2px solid #dee2e6;
+    padding: 4px 8px;
+    margin: 2px 0;
+}
+
+.country-option {
+    padding-left: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.country-flag-option {
+    width: 20px;
+    height: 14px;
+    border: 1px solid #ddd;
 }
 
 #year-display {
@@ -96,14 +130,6 @@ button:hover {
     background: #2980b9;
 }
 
-.visualization-area {
-    flex: 1;
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    padding: 20px;
-}
-
 #mds-chart {
     width: 100%;
     height: 600px;
@@ -112,8 +138,9 @@ button:hover {
 .histogram-panel {
     background: white;
     border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     padding: 20px;
+    margin-bottom: 20px;
 }
 
 .histogram-controls {
@@ -168,8 +195,7 @@ button:hover {
     pointer-events: none;
 }
 
-.x-axis-label,
-.y-axis-label {
+.x-axis-label, .y-axis-label {
     font-size: 12px;
     fill: #555;
     font-weight: 600;
@@ -182,17 +208,98 @@ button:hover {
 .legend text {
     fill: #333;
 }
+/* Cluster styles */
+.cluster-0 { fill: #1f77b4; color: #1f77b4; }
+.cluster-1 { fill: #ff7f0e; color: #ff7f0e; }
+.cluster-2 { fill: #2ca02c; color: #2ca02c; }
+.cluster-3 { fill: #d62728; color: #d62728; }
+.cluster-4 { fill: #9467bd; color: #9467bd; }
+.cluster-5 { fill: #8c564b; color: #8c564b; }
+.cluster-6 { fill: #e377c2; color: #e377c2; }
+.cluster-7 { fill: #7f7f7f; color: #7f7f7f; }
+.cluster-8 { fill: #bcbd22; color: #bcbd22; }
+.cluster-9 { fill: #17becf; color: #17becf; }
+.cluster-10 { fill: #aec7e8; color: #aec7e8; }
+.cluster-11 { fill: #ffbb78; color: #ffbb78; }
+.cluster-12 { fill: #98df8a; color: #98df8a; }
+.cluster-13 { fill: #ff9896; color: #ff9896; }
+.cluster-14 { fill: #c5b0d5; color: #c5b0d5; }
+.cluster-15 { fill: #c49c94; color: #c49c94; }
+.cluster-16 { fill: #f7b6d2; color: #f7b6d2; }
+.cluster-17 { fill: #dbdb8d; color: #dbdb8d; }
+.cluster-18 { fill: #9edae5; color: #9edae5; }
+.cluster-19 { fill: #393b79; color: #393b79; }
+.cluster-20 { fill: #637939; color: #637939; }
+.cluster-21 { fill: #8c6d31; color: #8c6d31; }
+.cluster-22 { fill: #843c39; color: #843c39; }
+.cluster-23 { fill: #7b4173; color: #7b4173; }
+.cluster-24 { fill: #5254a3; color: #5254a3; }
 
-/* Ensure filtered points are behind */
-.filtered-out-point {
-    z-index: 1;
+.cluster-point {
+    stroke: #333;
+    stroke-width: 1.5;
+    r: 8;
 }
 
-.point-group {
-    z-index: 10;
+.cluster-info {
+    margin-top: 20px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 4px;
+    border-left: 4px solid #3498db;
 }
 
-.footer {
-    display: flex;
-    justify-content: space-evenly;
+.cluster-info h4 {
+    margin-bottom: 10px;
+    color: #2c3e50;
+}
+
+#cluster-stats {
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+.site-footer {
+    background: #2c3e50;
+    color: white;
+    padding: 20px 0;
+    margin-top: 40px;
+    border-radius: 8px;
+}
+
+.footer-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.footer-content p {
+    margin-bottom: 8px;
+}
+
+.footer-content strong {
+    color: #3498db;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 1200px) {
+    .main-content {
+        flex-direction: column;
+    }
+    
+    .controls-panel {
+        width: 100%;
+    }
+    
+    .left-panel {
+        order: 1;
+    }
+    
+    .visualization-area {
+        order: 2;
+    }
+    
+    .right-panel {
+        order: 3;
+    }
 }

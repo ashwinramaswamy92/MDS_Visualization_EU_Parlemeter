@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="css/style.css">
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="https://unpkg.com/d3-simple-slider"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ml5@latest/dist/ml5.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -19,71 +20,119 @@
         </header>
 
         <div class="main-content">
-            <div class="controls-and-visualization">
-                <div class="controls-panel">
-                    <h3>Controls</h3>
-                    
-                    <div class="control-group">
-                        <label for="year-slider">Year Filter:</label>
-                        <div id="year-slider"></div>
-                        <div id="year-display">All Years</div>
-                    </div>
-
-                    <div class="control-group">
-                        <label for="country-select">Country Filter (Ctrl+click to select multiple):</label>
-                        <select id="country-select" multiple>
-                            <option value="all" selected>All Countries</option>
-                        </select>
-                    </div>
-
-                    <div class="control-group">
-                        <label for="point-size">Point Size:</label>
-                        <input type="range" id="point-size" min="5" max="30" value="15">
-                    </div>
-
-                    <div class="control-group checkbox-group">
-                        <label>
-                            <input type="checkbox" id="auto-zoom">
-                            Auto-zoom on filter
-                        </label>
-                    </div>
-
-                    <div class="control-group checkbox-group">
-                        <label>
-                            <input type="checkbox" id="show-filtered" checked>
-                            Show filtered out points
-                        </label>
-                    </div>
-
-                    <div class="control-group">
-                        <button id="reset-zoom">Reset Zoom</button>
-                        <button id="clear-selection">Clear Selection</button>
-                    </div>
+            <div class="controls-panel left-panel">
+                <h3>Filters & Display</h3>
+                
+                <div class="control-group">
+                    <label for="year-slider">Year Filter:</label>
+                    <div id="year-slider"></div>
+                    <div id="year-display">All Years</div>
                 </div>
 
-                <div class="visualization-area">
-                    <div id="mds-chart"></div>
+                <div class="control-group">
+                    <label for="country-select">Country/Region Filter:</label>
+                    <select id="country-select" multiple>
+                        <option value="all" selected>ALL COUNTRIES</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label for="point-size">Point Size:</label>
+                    <input type="range" id="point-size" min="5" max="30" value="15">
+                </div>
+
+                <div class="control-group checkbox-group">
+                    <label>
+                        <input type="checkbox" id="auto-zoom">
+                        Auto-zoom on filter
+                    </label>
+                </div>
+
+                <div class="control-group checkbox-group">
+                    <label>
+                        <input type="checkbox" id="show-filtered" checked>
+                        Show filtered out points
+                    </label>
+                </div>
+
+                <div class="control-group">
+                    <button id="reset-zoom">Reset Zoom</button>
+                    <button id="clear-selection">Clear Selection</button>
                 </div>
             </div>
 
-            <div class="histogram-panel">
-                <div class="histogram-controls">
-                    <h3>Distribution Comparison</h3>
-                    <div class="histogram-options">
-                        <label>
-                            <input type="checkbox" id="normalize-histograms">
-                            Normalize Histograms
-                        </label>
-                        <button id="clear-histograms">Clear All</button>
-                    </div>
+            <div class="visualization-area">
+                <div id="mds-chart"></div>
+            </div>
+
+            <div class="controls-panel right-panel">
+                <h3>Clustering Analysis</h3>
+                
+                <div class="control-group">
+                    <label for="cluster-algo">Clustering Algorithm:</label>
+                    <select id="cluster-algo">
+                        <option value="dbscan">DBSCAN</option>
+                        <option value="kmeans">K-Means</option>
+                        <option value="hierarchical">Hierarchical</option>
+                    </select>
                 </div>
-                <div id="histogram-container"></div>
+
+                <div class="control-group">
+                    <label for="epsilon">DBSCAN Epsilon:</label>
+                    <input type="range" id="epsilon" min="0.01" max="0.5" step="0.01" value="0.1">
+                    <div id="epsilon-value">0.10</div>
+                </div>
+
+                <div class="control-group">
+                    <label for="min-samples">Min Samples:</label>
+                    <input type="range" id="min-samples" min="1" max="20" value="5">
+                    <div id="min-samples-value">5</div>
+                </div>
+
+                <div class="control-group">
+                    <label for="k-clusters">K-Means Clusters (k):</label>
+                    <input type="range" id="k-clusters" min="2" max="10" value="4">
+                    <div id="k-clusters-value">4</div>
+                </div>
+
+                <div class="control-group">
+                    <button id="apply-clustering">Apply Clustering</button>
+                    <button id="clear-clustering">Clear Clustering</button>
+                </div>
+
+                <div class="cluster-info">
+                    <h4>Cluster Information</h4>
+                    <div id="cluster-stats"></div>
+                </div>
             </div>
         </div>
+
+        <div class="histogram-panel">
+            <div class="histogram-controls">
+                <h3>Distribution Comparison</h3>
+                <div class="histogram-options">
+                    <label>
+                        <input type="checkbox" id="normalize-histograms">
+                        Normalize Histograms
+                    </label>
+                    <button id="clear-histograms">Clear All</button>
+                </div>
+            </div>
+            <div id="histogram-container"></div>
+        </div>
+
+        <footer class="site-footer">
+            <div class="footer-content">
+                <p><strong>European Parlemeter Political Positioning Visualization</strong></p>
+                <p>Data Source: European Parliament Eurobarometer Surveys | <br> 
+                   Implemented with D3.js and ml5.js with help from the invaluable programming assistant, DeepSeek | 
+                   For academic and research use</p>
+            </div>
+        </footer>
     </div>
-    <footer class = "footer">Webpage built with the support of generative AI (DeepSeek)</footer>
 
     <script src="js/countryColors.js"></script>
+    <script src="js/clustering.js"></script>
     <script src="js/histogram.js"></script>
     <script src="js/mdsChart.js"></script>
     <script src="js/app.js"></script>

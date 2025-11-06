@@ -1,31 +1,31 @@
-code,country
-AT,Austria
-BE,Belgium
-BG,Bulgaria
-CY,Cyprus
-CZ,Czechia
-DE,Germany
-DK,Denmark
-EE,Estonia
-EL,Greece
-ES,Spain
-FI,Finland
-FR,France
-HR,Croatia
-HU,Hungary
-IE,Ireland
-IT,Italy
-LT,Lithuania
-LU,Luxembourg
-LV,Latvia
-MK,North Macedonia
-MT,Malta
-NL,The Netherlands
-PL,Poland
-PT,Portugal
-RO,Romania
-SE,Sweden
-SI,Slovenia
-SK,Slovakia
-TR,Turkey
-UK,The United Kingdom
+code,country,region
+AT,Austria,Central Europe
+BE,Belgium,Western Europe
+BG,Bulgaria,Balkans
+CY,Cyprus,Southern Europe
+CZ,Czechia,Central Europe
+DE,Germany,Western Europe
+DK,Denmark,Nordics
+EE,Estonia,Baltics
+EL,Greece,Southern Europe
+ES,Spain,Southern Europe
+FI,Finland,Nordics
+FR,France,Western Europe
+HR,Croatia,Balkans
+HU,Hungary,Central Europe
+IE,Ireland,British Isles
+IT,Italy,Southern Europe
+LT,Lithuania,Baltics
+LU,Luxembourg,Western Europe
+LV,Latvia,Baltics
+MK,North Macedonia,Balkans
+MT,Malta,Southern Europe
+NL,The Netherlands,Western Europe
+PL,Poland,Central Europe
+PT,Portugal,Southern Europe
+RO,Romania,Balkans
+SE,Sweden,Nordics
+SI,Slovenia,Balkans
+SK,Slovakia,Central Europe
+TR,Turkey,Balkans
+UK,The United Kingdom,British Isles
